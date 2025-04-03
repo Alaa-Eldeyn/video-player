@@ -2,15 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import videojs from "video.js";
 import "video.js/dist/video-js.css";
 
-export const useVideoPlayer = (
-  playlist: { title: string; src: string; isWatched: boolean }[]
-) => {
-  const videoRef = useRef<HTMLDivElement | null>(null);
-  const playerRef = useRef<videojs.Player | null>(null);
-  const progressIntervals = useRef<{ [key: number]: NodeJS.Timeout }>({});
+export const useVideoPlayer = (playlist) => {
+  const videoRef = useRef(null);
+  const playerRef = useRef(null);
+  const progressIntervals = useRef({});
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
 
-  const updateProgressBar = (videoIndex: number, progress: number) => {
+  const updateProgressBar = (videoIndex, progress) => {
     const progressBar = document.getElementById(`progress-${videoIndex}`);
     if (progressBar) {
       progressBar.style.width = `${progress * 100}%`;
@@ -23,7 +21,7 @@ export const useVideoPlayer = (
     }
   };
 
-  const checkIfWatched = (videoIndex: number) => {
+  const checkIfWatched = (videoIndex) => {
     if (progressIntervals.current[videoIndex]) {
       clearInterval(progressIntervals.current[videoIndex]);
     }
@@ -49,7 +47,7 @@ export const useVideoPlayer = (
     }
   };
 
-  const setVideoByIndex = (index: number) => {
+  const setVideoByIndex = (index) => {
     if (index >= 0 && index < playlist.length) {
       setCurrentVideoIndex(index);
     }
@@ -77,19 +75,14 @@ export const useVideoPlayer = (
             overrideNative: true,
           },
         },
-        
       });
-      player.qualityLevels();
       player.on("ended", handleVideoEnd);
     } else {
       player.src({ src: playlist[currentVideoIndex].src });
-      player.qualityLevels();
       player.currentTime(0);
       player.load();
       const handleCanPlay = () => {
-        player
-          .play()
-          .catch((error: Error) => console.error("Playback error:", error));
+        player.play().catch((error) => console.error("Playback error:", error));
       };
 
       player.on("canplay", handleCanPlay);
