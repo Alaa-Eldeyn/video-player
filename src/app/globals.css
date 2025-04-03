@@ -24,3 +24,32 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Custom styles for video.js */
+.playlist-item:hover {
+  @apply bg-gray-600;
+}
+
+.playlist-item.active {
+  @apply bg-gray-600 font-bold;
+}
+
+.playlist-item.watched {
+  @apply text-green-600
+}
+
+.playlist-item.active .video-number,
+.playlist-item.watched .video-number {
+  color: inherit;
+}
+
+.vjs_video_3-dimensions,
+.dyt-fluid,
+.dyntube-player {
+  padding-top: 20px !important;
+  height: 500px !important;
+}
+
+.vjs-control-bar {
+  z-index: 999 !important;
+}
