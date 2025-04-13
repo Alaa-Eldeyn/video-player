@@ -153,11 +153,6 @@ export const useVideoPlayer = (
           displayCurrentQuality: true,
         });
   
-        // ✅ Detect Quality Change
-        player.on("hlsQualitySelector::change", (event: any, quality: string) => {
-          console.log("🎯 Selected Quality:", quality);
-          setSelectedQuality(quality); // Save selected quality
-        });
       });
 
 
