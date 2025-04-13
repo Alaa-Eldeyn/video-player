@@ -45,7 +45,7 @@ function PlayList({
         >
           <span className="video-number me-3">{index + 1}</span>
           <span className="video-title">{video.title}</span>
-          <div className="progress-indicator ms-auto w-16 h-1 rounded-xl relative bg-gray-200">
+          <div className="progress-indicator ms-auto w-16 h-1 rounded-xl relative bg-gray-200 overflow-hidden">
             <div className="progress-bar absolute top-0 left-0 bottom-0 w-0 rounded-xl bg-green-600" id={`progress-${index}`}></div>
           </div>
         </div>

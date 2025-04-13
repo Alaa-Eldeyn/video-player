@@ -9,10 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "hls.js": "^1.6.1",
+    "hls.js": "^1.6.2",
     "next": "15.2.4",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "videojs-contrib-ads": "^7.5.2",
+    "videojs-hls-quality-selector": "^2.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

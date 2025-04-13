@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,8 +18,6 @@ export default function RootLayout({
       </head>
       <body className={`antialiased`}>
         {children}
-        <Script src="/js/publitio_player.min.js" strategy="beforeInteractive" />
-        <Script src="/js/player.min.js" strategy="beforeInteractive" />
       </body>
     </html>
   );

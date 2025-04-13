@@ -7,7 +7,7 @@ const playlist = [
   {
     title: "What is .NET",
     isWatched: false,
-    src: "https://media.publit.io/file/CSharp/Variables/12-Print-Full-Name.m3u8",
+    src: "https://media.publit.io/file/datastructureforstudents/1CourseIntro/DS-Intro-Session.m3u8",
   },
   {
     title: "History",

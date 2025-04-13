@@ -53,3 +53,12 @@ body {
 .vjs-control-bar {
   z-index: 999 !important;
 }
+
+.vjs-big-play-button{
+  width: 60px !important;
+  height: 60px !important;
+  line-height: 58px !important;
+  border-radius: 100% !important;
+  border: #f17d3a 1px solid !important;
+  color: #f17d3a !important;
+}

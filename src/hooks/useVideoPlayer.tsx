@@ -1,16 +1,28 @@
-import { useEffect, useRef, useState } from "react";
+"use client"
+import { useCallback, useEffect, useRef, useState } from "react";
 import videojs from "video.js";
+import Hls from "hls.js"
+
+// Extend the Window interface to include Hls
+declare global {
+  interface Window {
+    Hls: typeof Hls;
+  }
+}
 import "video.js/dist/video-js.css";
+import "videojs-hls-quality-selector";
 
 export const useVideoPlayer = (
   playlist: { title: string; src: string; isWatched: boolean }[]
 ) => {
-  const videoRef = useRef<HTMLDivElement | null>(null);
-  // @ts-ignore
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  // @ts-expect-error: video.js Player type is not fully compatible with TypeScript
   const playerRef = useRef<videojs.Player | null>(null);
   const progressIntervals = useRef<{ [key: number]: NodeJS.Timeout }>({});
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
-
+  const convertToM3u8 = useCallback((url: string): string => {
+    return url.replace(/\.html(\?|$)/, '.m3u8$1');
+  }, []);
   const updateProgressBar = (videoIndex: number, progress: number) => {
     const progressBar = document.getElementById(`progress-${videoIndex}`);
     if (progressBar) {
@@ -53,65 +65,124 @@ export const useVideoPlayer = (
       setCurrentVideoIndex(index);
     }
   };
-
+  useEffect(()=>{
+    const script = document.createElement("script");
+    script.src = "https://static.publit.io/js/hls.js";
+    script.async = true;
+    script.onload = () => {
+      console.log("Video.js script loaded");
+    }
+    document.body.appendChild(script);
+  },[])
   useEffect(() => {
     let player = playerRef.current;
 
-    if (!player) {
+    if (!player && videoRef.current) {
       const videoElement = document.createElement("video-js");
       videoElement.classList.add("vjs-big-play-centered");
+      
       const options = {
         fill: true,
         controlBar: { pictureInPictureToggle: false },
         loop: false,
-        playbackRates: [
-          0.5, 0.75, 1, 1.25, 1.5, 1.75, 2, 2.25, 2.5, 2.75, 3, 3.25, 3.5, 3.75,
-          4,
-        ],
+        playbackRates: [0.5, 0.75, 1, 1.25, 1.5, 2],
         html5: {
-          nativeTextTracks: false,
-          hls: { overrideNative: true },
+          vhs: {
+            overrideNative: true,
+            withCredentials: false,
+            enableLowInitialPlaylist: true,
+            smoothQualityChange: true,
+          },
+          hls: {
+            overrideNative: true, 
+            enableWorker: true,
+            debug: false,
+          },
+          nativeAudioTracks: false,
+          nativeVideoTracks: false,
         },
         textTrackSettings: false,
         autoplay: false,
         controls: true,
         responsive: true,
         preload: "auto",
-        poster:
-          "https://media.publit.io/file/w_1280/CSharp/Variables/1-Declare-Variables.jpg",
         fluid: true,
         sources: [
           {
             src: playlist[currentVideoIndex].src,
             type: "application/x-mpegURL",
+            withCredentials: false,
           },
         ],
       };
-      console.log("Video source:", playlist[currentVideoIndex].src);
-      
-      if (videoRef.current) {
-        videoRef.current.innerHTML = "";
-        videoRef.current.appendChild(videoElement);
-      }
 
-      player = playerRef.current = videojs(videoElement, options);
+      videoRef.current.innerHTML = "";
+      videoRef.current.appendChild(videoElement);
+
+      player = playerRef.current = videojs(videoElement, options, () => {
+        console.log("Player is ready");
+      });
+
+      if (window.Hls && window.Hls.isSupported()) {
+        const hls = new window.Hls();
+        hls.loadSource(convertToM3u8(playlist[currentVideoIndex].src));
+        hls.attachMedia(videoRef.current);
+        
+        hls.on(window.Hls.Events.MANIFEST_PARSED, () => {
+          player.play();
+          // handleDuration(player.duration());
+        });
+      player.on("error", () => {
+        console.error("Player error:", player?.error());
+      });
+      hls.on(window.Hls.Events.ERROR, (event: any, data: any) => {
+        console.error("HLS.js Error", data);
+        if (data.fatal) {
+          switch (data.type) {
+            case window.Hls.ErrorTypes.NETWORK_ERROR:
+              hls.startLoad();
+              break;
+            case window.Hls.ErrorTypes.MEDIA_ERROR:
+              hls.recoverMediaError();
+              break;
+            default:
+              console.error("Unrecoverable error:", data);
+          }
+        }
+        player.hlsQualitySelector({
+          displayCurrentQuality: true,
+        });
+  
+        // ✅ Detect Quality Change
+        player.on("hlsQualitySelector::change", (event: any, quality: string) => {
+          console.log("🎯 Selected Quality:", quality);
+          setSelectedQuality(quality); // Save selected quality
+        });
+      });
+
 
       player.on("ended", handleVideoEnd);
-      player.qualityLevels();
-      // player.hlsQualitySelector({ displayCurrentQuality: true });
-      // const levels = player.qualityLevels();
-      // levels.on("change", () => {
-      //   const currentTime = player.currentTime();
-      //   player.one("loadedmetadata", () => {
-      //     player.currentTime(currentTime);
-      //   });
-      // });
-    } else {
+      
+      if (player.qualityLevels) {
+        player.qualityLevels();
+        player.hlsQualitySelector({ displayCurrentQuality: true });
+      }
+
+      player.on("loadedmetadata", () => {
+        console.log("Video metadata loaded");
+      });
+      console.log("Video source:", playlist[currentVideoIndex].src);
+    } else if (player) {
       console.log("Video source:", playlist[currentVideoIndex].src);
       player.pause();
-      player.src({ src: playlist[currentVideoIndex].src });
+      player.currentTime(0);
+      player.src({
+        src: playlist[currentVideoIndex].src,
+        type: "application/x-mpegURL",
+        withCredentials: false,
+      });
       player.load();
-    }
+    }}
 
     return () => {
       Object.values(progressIntervals.current).forEach(clearInterval);
