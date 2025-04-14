@@ -15,7 +15,7 @@ import "videojs-hls-quality-selector";
 export const useVideoPlayer = (
   playlist: { title: string; src: string; isWatched: boolean }[]
 ) => {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const videoRef = useRef<HTMLDivElement | null>(null);
   // @ts-expect-error: video.js Player type is not fully compatible with TypeScript
   const playerRef = useRef<videojs.Player | null>(null);
   const progressIntervals = useRef<{ [key: number]: NodeJS.Timeout }>({});
@@ -82,6 +82,7 @@ export const useVideoPlayer = (
       videoElement.classList.add("vjs-big-play-centered");
       
       const options = {
+        techOrder: ['html5'],
         fill: true,
         controlBar: { pictureInPictureToggle: false },
         loop: false,
@@ -107,6 +108,7 @@ export const useVideoPlayer = (
         responsive: true,
         preload: "auto",
         fluid: true,
+        crossOrigin: 'anonymous',
         sources: [
           {
             src: playlist[currentVideoIndex].src,

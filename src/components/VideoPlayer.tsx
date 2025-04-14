@@ -1,11 +1,11 @@
 const VideoPlayer = ({
   videoRef,
 }: {
-  videoRef: React.RefObject<HTMLVideoElement  | null>;
+  videoRef: React.RefObject<HTMLDivElement  | null>;
 }) => {
   return (
     <div data-vjs-player>
-     <video ref={videoRef} controls />
+     <div ref={videoRef} />
     </div>
   );
 };
